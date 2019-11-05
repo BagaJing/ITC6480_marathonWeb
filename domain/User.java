@@ -24,6 +24,9 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Blog> blogs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "coach")
+    private List<Trainning> trainnings = new ArrayList<>();
     public User() {
     }
 

@@ -27,6 +27,7 @@ public class BlogController {
     private final String INPUT="admin/blogs-input";
     private final String LIST="admin/blogs";
     private final String REDIRECT_LIST="redirect:/admin/blogs";
+    private final String VIEW = "admin/blog";
     @Autowired
     private BlogService blogService;
     @Autowired
@@ -97,7 +98,11 @@ public class BlogController {
         }
         return  REDIRECT_LIST;
     }
-
+    @GetMapping("blogs/{id}")
+    public String view(@PathVariable Long id,Model model){
+        model.addAttribute("blog",blogService.getAndConvert(id));
+        return VIEW;
+    }
     @GetMapping("/blogs/{id}/delete")
     public String delete(@PathVariable Long id,RedirectAttributes attributes){
         blogService.deleteBlog(id);
