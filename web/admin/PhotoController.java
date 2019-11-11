@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 
-//@RestController
+//@RestController // postman test using
 @Controller
 @RequestMapping("/admin")
 public class PhotoController {
@@ -18,13 +18,30 @@ public class PhotoController {
     PhotoSevice photoSevice;
     final static String REDIRECT = "redirect:/admin/gallery";
     final static String GALLERY = "admin/gallery";
-    @PostMapping("/gallery/upload")
-    public String uploads(@RequestParam("files") MultipartFile[] files, RedirectAttributes attributes) throws IOException {
+    final static  int GALLERY_TYPE = 2;
+    final static  int ARTICLE_TYPE = 1;
+    @PostMapping("/gallery/uploadArticlePic")
+    public String uploadsArticlePic(@RequestParam("files") MultipartFile[] files, RedirectAttributes attributes) throws IOException {
         if (files.length == 0) return "No files found need to be upload";
         String status;
         String type;
         try {
-            status = photoSevice.batchUploadFiles(files);
+            status = photoSevice.batchUploadFiles(files,ARTICLE_TYPE);
+            type = "message";
+        } catch (Exception e){
+            status = e.getMessage();
+            type = "exception";
+        }
+        attributes.addFlashAttribute(type,status);
+        return REDIRECT;
+    }
+    @PostMapping("/gallery/uploadGalleryPic")
+    public String uploadsGalleryPic(@RequestParam("files") MultipartFile[] files, RedirectAttributes attributes) throws IOException {
+        if (files.length == 0) return "No files found need to be upload";
+        String status;
+        String type;
+        try {
+            status = photoSevice.batchUploadFiles(files,GALLERY_TYPE);
             type = "message";
         } catch (Exception e){
             status = e.getMessage();
@@ -48,8 +65,9 @@ public class PhotoController {
     }
 
     @GetMapping("/gallery")
-    public String getAll(Model model){
-        model.addAttribute("photos",photoSevice.getAllUrls());
+    public String getAllArtilcePic(Model model){
+        model.addAttribute("articlePhotos",photoSevice.getAllUrlsByType(ARTICLE_TYPE));
+        model.addAttribute("galleryPhotos",photoSevice.getAllUrlsByType(GALLERY_TYPE));
         return GALLERY;
     }
 }

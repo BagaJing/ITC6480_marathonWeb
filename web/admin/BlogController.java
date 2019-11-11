@@ -28,6 +28,7 @@ public class BlogController {
     private final String LIST="admin/blogs";
     private final String REDIRECT_LIST="redirect:/admin/blogs";
     private final String VIEW = "admin/blog";
+    private final static int ARTICLE_TYPE = 1;
     @Autowired
     private BlogService blogService;
     @Autowired
@@ -66,7 +67,7 @@ public class BlogController {
     private  void setTypeaAndTag(Model model){
         model.addAttribute("types",typeService.listType());
         model.addAttribute("tags",tagService.listTag());
-        model.addAttribute("photos",photoSevice.getAllUrls());
+        model.addAttribute("photos",photoSevice.getAllUrlsByType(ARTICLE_TYPE));
     }
 
     @GetMapping("/blogs/{id}/input")

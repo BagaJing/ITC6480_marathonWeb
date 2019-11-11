@@ -115,7 +115,7 @@ public class PhotoServiceImpl implements PhotoSevice{
     @Autowired
     private PhotoRepository photoRepository;
     @Override
-    public String batchUploadFiles(MultipartFile[] orginalFiles) throws IOException {
+    public String batchUploadFiles(MultipartFile[] orginalFiles,int typeId) throws IOException {
         List<File> files = new ArrayList<>();
         List<String> nameList = new ArrayList<>();
         for (int i = 0 ; i < orginalFiles.length ; i++){
@@ -129,6 +129,7 @@ public class PhotoServiceImpl implements PhotoSevice{
                 int i = 0;
                 for (String name : nameList){
                     Photo photo = new Photo();
+                    photo.setTypeId(typeId);
                     photo.setName(name);
                     photo.setUploadTime(new Date());
                     photo.setURL(amazonUtils.generateURl(bucketName,name));
@@ -189,5 +190,10 @@ public class PhotoServiceImpl implements PhotoSevice{
             res.add(photo.getURL());
         }
         return  res;
+    }
+
+    @Override
+    public List<Photo> getAllUrlsByType(int typeId) {
+        return photoRepository.findAllByTypeId(typeId);
     }
 }
