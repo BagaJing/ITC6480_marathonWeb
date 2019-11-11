@@ -6,6 +6,7 @@ import org.springframework.beans.BeanWrapperImpl;
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MyBeanUtils {
 
@@ -33,5 +34,13 @@ public class MyBeanUtils {
         }
         //System.out.println(list);
         return list;
+    }
+    public static String getRandomOrderNum(int num){
+        String result = "";
+        Random ran = new Random();
+        for (int i = 0 ; i < num ; i++){
+            result += String.valueOf(ran.nextInt(10));
+        }
+        return result;
     }
 }

@@ -27,6 +27,8 @@ public class User {
 
     @OneToMany(mappedBy = "coach")
     private List<Trainning> trainnings = new ArrayList<>();
+    @OneToMany(mappedBy = "coach")
+    private List<Order> orders = new ArrayList<>();
     public User() {
     }
 
@@ -110,18 +112,33 @@ public class User {
         this.blogs = blogs;
     }
 
+    public List<Trainning> getTrainnings() {
+        return trainnings;
+    }
+
+    public void setTrainnings(List<Trainning> trainnings) {
+        this.trainnings = trainnings;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
                 ", nickname='" + nickname + '\'' +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
-                ", avatar='" + avatar + '\'' +
                 ", type=" + type +
-                ", createTime=" + createTime +
-                ", updateTime=" + updateTime +
+                ", blogs=" + blogs +
+                ", trainnings=" + trainnings +
+                ", orders=" + orders +
                 '}';
     }
 }

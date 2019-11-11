@@ -3,6 +3,8 @@ package com.jing.blogs.domain;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "t_training")
@@ -22,6 +24,8 @@ public class Trainning {
 
     private String description;  //the detail description about the training
     private int ordered; //count the times the trainning has been ordered
+    @OneToMany(mappedBy = "selectedTrain")
+    private List<Order> orders = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -31,13 +35,9 @@ public class Trainning {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public void setName(String name) { this.name = name; }
 
     public double getPrice() {
         return price;
@@ -47,13 +47,9 @@ public class Trainning {
         this.price = price;
     }
 
-    public int getDurations() {
-        return durations;
-    }
+    public int getDurations() { return durations; }
 
-    public void setDurations(int durations) {
-        this.durations = durations;
-    }
+    public void setDurations(int durations) { this.durations = durations; }
 
     public User getCoach() {
         return coach;
@@ -78,4 +74,8 @@ public class Trainning {
     public void setOrdered(int ordered) {
         this.ordered = ordered;
     }
+
+    public List<Order> getOrders() { return orders; }
+
+    public void setOrders(List<Order> orders) { this.orders = orders; }
 }
