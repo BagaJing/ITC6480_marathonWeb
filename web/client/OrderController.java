@@ -2,17 +2,22 @@ package com.jing.blogs.web.client;
 
 import com.jing.blogs.domain.Order;
 import com.jing.blogs.domain.Trainning;
+import com.jing.blogs.domain.User;
 import com.jing.blogs.service.MailService;
 import com.jing.blogs.service.OrderService;
 import com.jing.blogs.service.TrainingService;
 import com.jing.blogs.util.MyBeanUtils;
-import org.hibernate.annotations.AttributeAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpSession;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 @RestController
 public class OrderController {
@@ -36,14 +41,21 @@ public class OrderController {
         order.setOrderId(MyBeanUtils.getRandomOrderNum(ORDER_DEFAULT_LENGTH));
         order.setEmailAddress(email);
         order.setStartDate(new Date());
-        order.setEndDate(new Date());
+        Date endDate = new Date();
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(endDate);
+        calendar.add(calendar.DATE,order.getSelectedTrain().getDurations());
+        order.setEndDate(calendar.getTime());
+        String content = MyBeanUtils.getHtmlContent(order.getCustomerName(),order.getSelectedTrain().getName(),
+                order.getSelectedTrain().getId(),order.getOrderId(),order.getEmailAddress());
         try{
             Order o = orderService.saveOrder(order);
             if (o!=null) res = "Succeed";
-            mailService.sendEmail(service.getCoach().getEmail(),"New Order(TEST)","This is a test");
+            mailService.sendHtmlEmail(service.getCoach().getEmail(),"A new Order!",content);
         } catch (Exception e){
             res = e.getMessage();
         }
         return res;
     }
+
 }

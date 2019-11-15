@@ -43,4 +43,36 @@ public class MyBeanUtils {
         }
         return result;
     }
+    public static String getHtmlContent(String customerName,
+                                        String TrainName,
+                                        long trainId,
+                                        String orderId,
+                                        String customerEmail){
+        String res = "<html>\n" +
+                "<body>\n" +
+                "    <h3>hello Coach ! You got a new order!</h3>\n" +
+                "   <table>\n"+
+                "       <thead>\n"+
+                "       <tr>\n"+
+                "           <th>Customer</th>\n"+
+                "           <th>Chosen Training</th>\n"+
+                "           <th>Training ID</th>\n"+
+                "           <th>Order ID</th>\n"+
+                "           <th>Customer Email</th>\n"+
+                "       </tr>\n"+
+                "       </thead>\n"+
+                "       <tbody>\n"+
+                "       <tr>\n"+
+                "           <td>"+customerName+"</th>\n"+
+                "           <td>"+TrainName+"</th>\n"+
+                "           <td>"+trainId+"</th>\n"+
+                "           <td>"+orderId+"</th>\n"+
+                "           <td>"+customerEmail+"</th>\n"+
+                "       </tr>\n"+
+                "       </tbody>\n"+
+                "   </table>\n"+
+                "</body>\n" +
+                "</html>";
+        return  res;
+    }
 }

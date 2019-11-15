@@ -65,7 +65,7 @@ public class PhotoServiceImpl implements PhotoSevice{
                 .build();
         System.out.println(this.s3Client.getBucketPolicy(bucketName).getPolicyText());
     }
-    private String batchUploadFilestoS3Bucket(List<File> files){
+    public String batchUploadFilestoS3Bucket(List<File> files){
         if (files.size()==0) return "no files found to upload";
         String response = "";
         TransferManager transfer = TransferManagerBuilder.standard().withS3Client(s3Client).build();
@@ -106,7 +106,7 @@ public class PhotoServiceImpl implements PhotoSevice{
         }
         return response;
     }
-    private void deleteFileFromS3(String fileName){
+    public void deleteFileFromS3(String fileName){
         s3Client.deleteObject(new DeleteObjectRequest(bucketName,fileName));
     }
     /*

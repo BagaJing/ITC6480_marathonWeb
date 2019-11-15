@@ -26,6 +26,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<Order> getAllOrdersWithRoot(User user) {
+        int access = user.getType();
+        if(access == 1) return  getAllOrders();
+        else return getOrdersByCoach(user);
+    }
+
+    @Override
     public void deleteOrder(Long id) {
         orderRepository.deleteById(id);
     }

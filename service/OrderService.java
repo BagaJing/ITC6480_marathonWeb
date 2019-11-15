@@ -9,6 +9,7 @@ import java.util.List;
 public interface OrderService {
     List<Order> getAllOrders();
     List<Order> getOrdersByCoach(User coach);
+    List<Order> getAllOrdersWithRoot(User user);
     void deleteOrder(Long id);
     Order saveOrder(Order order);
     Long countOrders(Long coachId);
