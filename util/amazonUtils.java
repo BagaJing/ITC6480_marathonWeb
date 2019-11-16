@@ -22,12 +22,19 @@ public class amazonUtils {
         fos.close();
         return targetFile;
     }
+    public static File convertMultiPartFileWithName(MultipartFile file,String name) throws IOException {
+        File targetFile = new File(name);
+        FileOutputStream fos = new FileOutputStream(targetFile);
+        fos.write(file.getBytes());
+        fos.close();
+        return targetFile;
+    }
     /*
      * it is possible for uploading the same file more than one time
      * than generating unique name for the file each time is needed
      * use timestamp to generate it
      */
-    private static String generateFileName(MultipartFile file){
+    public static String generateFileName(MultipartFile file){
         return new Date().getTime()+"-"+file.getOriginalFilename().replace(" ","_");
     }
     public static void printProgressBar(double pct){

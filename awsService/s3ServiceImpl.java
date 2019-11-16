@@ -1,4 +1,4 @@
-package com.jing.blogs.service;
+package com.jing.blogs.awsService;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -9,23 +9,17 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.transfer.*;
-import com.jing.blogs.dao.PhotoRepository;
-import com.jing.blogs.domain.Photo;
-import com.jing.blogs.util.MyBeanUtils;
 import com.jing.blogs.util.amazonUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
 import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 @Service
-public class PhotoServiceImpl implements PhotoSevice{
+public class s3ServiceImpl implements s3Service {
     /*
      * The start of amazon S3 functions
      */
@@ -65,7 +59,15 @@ public class PhotoServiceImpl implements PhotoSevice{
                 .build();
         System.out.println(this.s3Client.getBucketPolicy(bucketName).getPolicyText());
     }
-    private String batchUploadFilestoS3Bucket(List<File> files){
+    @Override
+    public String uploadFile(File file) {
+        List<File> files = new LinkedList<>();
+        files.add(file);
+        return batchUploadFiles(files);
+    }
+
+    @Override
+    public String batchUploadFiles(List<File> files) {
         if (files.size()==0) return "no files found to upload";
         String response = "";
         TransferManager transfer = TransferManagerBuilder.standard().withS3Client(s3Client).build();
@@ -95,7 +97,6 @@ public class PhotoServiceImpl implements PhotoSevice{
                 amazonUtils.eraseProgressBar();
                 amazonUtils.printProgressBar(pct);
             }while (!upload.isDone());
-            System.out.println();
             response = upload.getState().toString();
             /*upload succeed, delete local files*/
             for (File file : files){
@@ -106,94 +107,9 @@ public class PhotoServiceImpl implements PhotoSevice{
         }
         return response;
     }
-    private void deleteFileFromS3(String fileName){
+
+    @Override
+    public void deleteS3File(String fileName) {
         s3Client.deleteObject(new DeleteObjectRequest(bucketName,fileName));
-    }
-    /*
-    * --------------The end of amazon S3 functions----------------------------------------------------------------------
-    */
-    @Autowired
-    private PhotoRepository photoRepository;
-    @Override
-    public String batchUploadFiles(MultipartFile[] orginalFiles,int typeId) throws IOException {
-        List<File> files = new ArrayList<>();
-        List<String> nameList = new ArrayList<>();
-        for (int i = 0 ; i < orginalFiles.length ; i++){
-            files.add(amazonUtils.convertMultiPartFile(orginalFiles[i]));
-            nameList.add(files.get(i).getName().substring(2));
-        }
-        String uploadResult = batchUploadFilestoS3Bucket(files);
-        if(uploadResult.equalsIgnoreCase("Completed")){
-            try{
-                Photo[] saveList = new Photo[nameList.size()];
-                int i = 0;
-                for (String name : nameList){
-                    Photo photo = new Photo();
-                    photo.setTypeId(typeId);
-                    photo.setName(name);
-                    photo.setUploadTime(new Date());
-                    photo.setURL(amazonUtils.generateURl(bucketName,name));
-                    saveList[i] = photo;
-                    i++;
-                }
-                Iterable<Photo> iterable = Arrays.asList(saveList);
-                List<Photo> res = photoRepository.saveAll(iterable);
-                if (res.size() == 0){
-                    throw new Exception("failed to upload into database");
-                }
-            } catch (Exception e){
-                uploadResult = e.getMessage();
-                e.printStackTrace();
-            }
-
-            return uploadResult;
-        }
-        else
-            return uploadResult;
-    }
-
-    @Transactional
-    @Override
-    public void deltePhotos(String[] fileName) {
-        boolean s3Deleted = true;
-        try {
-            for (int i = 0 ; i < fileName.length;i++){
-                deleteFileFromS3(fileName[i]);
-            }
-        }catch (Exception e){
-            s3Deleted = false;
-            e.printStackTrace();
-        }
-        if (s3Deleted){
-            for (int i = 0; i < fileName.length;i++){
-                photoRepository.deleteByName(fileName[i]);
-            }
-        }
-    }
-
-    @Override
-    public List<Photo> getAllUrls() {
-        List<Photo> result = photoRepository.findAll();
-        return result;
-    }
-
-    @Override
-    public List<Photo> getAllByIds(String imgIds) {
-        return photoRepository.findAllById(MyBeanUtils.converttoList(imgIds));
-    }
-
-    @Override
-    public List<String> getPathsById(String imgIds) {
-        List<Photo> photos = photoRepository.findAllById(MyBeanUtils.converttoList(imgIds));
-        List<String> res = new ArrayList<>();
-        for(Photo photo : photos){
-            res.add(photo.getURL());
-        }
-        return  res;
-    }
-
-    @Override
-    public List<Photo> getAllUrlsByType(int typeId) {
-        return photoRepository.findAllByTypeId(typeId);
     }
 }
