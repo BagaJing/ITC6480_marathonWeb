@@ -10,6 +10,8 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.transfer.*;
 import com.jing.blogs.util.amazonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,8 @@ public class s3ServiceImpl implements s3Service {
      * The start of amazon S3 functions
      */
     private AmazonS3 s3Client;
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     //bucket and AWS properties
 

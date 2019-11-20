@@ -1,24 +1,20 @@
 package com.jing.blogs.service;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.transfer.*;
 import com.jing.blogs.dao.PhotoRepository;
 import com.jing.blogs.domain.Photo;
 import com.jing.blogs.util.MyBeanUtils;
 import com.jing.blogs.util.amazonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.jing.blogs.awsService.s3Service;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
@@ -42,78 +38,13 @@ public class PhotoServiceImpl implements PhotoSevice{
     @Value("${amazonProperties.secretKey}")
     private String secretKey;
 
-    // initialze the s3client
-    @PostConstruct
-    private void initializeAmazonS3(){
-        AWSCredentials credentials = new BasicAWSCredentials(this.accessKey,this.secretKey);
-        AWSCredentialsProvider credentialsProvider = new AWSCredentialsProvider() {
-            @Override
-            public AWSCredentials getCredentials() {
-                //AWSCredentials credentials = new BasicAWSCredentials(this.accessKey,this.secretKey);
-                return credentials;
-            }
 
-            @Override
-            public void refresh() {
-
-            }
-        };
-        Regions clientRegion = Regions.US_EAST_1;
-        this.s3Client = AmazonS3ClientBuilder.standard()
-                .withRegion(clientRegion)
-                .withCredentials(credentialsProvider)
-                .build();
-        System.out.println(this.s3Client.getBucketPolicy(bucketName).getPolicyText());
-    }
-    private String batchUploadFilestoS3Bucket(List<File> files){
-        if (files.size()==0) return "no files found to upload";
-        String response = "";
-        TransferManager transfer = TransferManagerBuilder.standard().withS3Client(s3Client).build();
-        try {
-            /*
-             * transfer.uploadFileList
-             * parameter 1:String bucketName
-             * parameter 2:String virtualDirecotryKeyPrefix : the virtual directory of files to upload, use null or empty String to upload into the root of bucket
-             * parameter 3:File direcotry: the common parent directory of files to upload, use new File(".") to upload without a common directory
-             * parameter 4:List<File> files: a list of files to upload
-             */
-            ObjectCannedAclProvider aclProvider = new ObjectCannedAclProvider() {
-                @Override
-                public CannedAccessControlList provideObjectCannedAcl(File file) {
-                    return CannedAccessControlList.PublicRead;
-                }
-            };
-            MultipleFileUpload upload = transfer.uploadFileList(bucketName,"",new File("."),files,null,null,aclProvider);
-            do{
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e){
-                    break;
-                }
-                TransferProgress progress = upload.getProgress();
-                double pct = progress.getPercentTransferred();
-                amazonUtils.eraseProgressBar();
-                amazonUtils.printProgressBar(pct);
-            }while (!upload.isDone());
-            System.out.println();
-            response = upload.getState().toString();
-            /*upload succeed, delete local files*/
-            for (File file : files){
-                file.delete();
-            }
-        } catch (Exception e){
-            response = e.getMessage();
-        }
-        return response;
-    }
-    private void deleteFileFromS3(String fileName){
-        s3Client.deleteObject(new DeleteObjectRequest(bucketName,fileName));
-    }
-    /*
-    * --------------The end of amazon S3 functions----------------------------------------------------------------------
-    */
     @Autowired
     private PhotoRepository photoRepository;
+    @Autowired
+    private s3Service s3Service;
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
     @Override
     public String batchUploadFiles(MultipartFile[] orginalFiles,int typeId) throws IOException {
         List<File> files = new ArrayList<>();
@@ -122,7 +53,7 @@ public class PhotoServiceImpl implements PhotoSevice{
             files.add(amazonUtils.convertMultiPartFile(orginalFiles[i]));
             nameList.add(files.get(i).getName().substring(2));
         }
-        String uploadResult = batchUploadFilestoS3Bucket(files);
+        String uploadResult = s3Service.batchUploadFiles(files); //  batchUploadFilestoS3Bucket(files);
         if(uploadResult.equalsIgnoreCase("Completed")){
             try{
                 Photo[] saveList = new Photo[nameList.size()];
@@ -130,6 +61,7 @@ public class PhotoServiceImpl implements PhotoSevice{
                 for (String name : nameList){
                     Photo photo = new Photo();
                     photo.setTypeId(typeId);
+                    logger.info("exception : test"+ name);
                     photo.setName(name);
                     photo.setUploadTime(new Date());
                     photo.setURL(amazonUtils.generateURl(bucketName,name));
@@ -142,7 +74,9 @@ public class PhotoServiceImpl implements PhotoSevice{
                     throw new Exception("failed to upload into database");
                 }
             } catch (Exception e){
-                uploadResult = e.getMessage();
+                for (String name : nameList)
+                    s3Service.deleteS3File(name);
+                uploadResult = "Upload Canclled by Exceptions, Please make sure you are uploading valid pictures.";
                 e.printStackTrace();
             }
 
@@ -158,7 +92,7 @@ public class PhotoServiceImpl implements PhotoSevice{
         boolean s3Deleted = true;
         try {
             for (int i = 0 ; i < fileName.length;i++){
-                deleteFileFromS3(fileName[i]);
+                s3Service.deleteS3File(fileName[i]); //deleteFileFromS3();
             }
         }catch (Exception e){
             s3Deleted = false;
@@ -195,5 +129,10 @@ public class PhotoServiceImpl implements PhotoSevice{
     @Override
     public List<Photo> getAllUrlsByType(int typeId) {
         return photoRepository.findAllByTypeId(typeId);
+    }
+
+    @Override
+    public Page<Photo> listPhoto(Pageable pageable, int typeId) {
+        return photoRepository.showWithPages(typeId,pageable);
     }
 }

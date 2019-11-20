@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
+import java.util.concurrent.Callable;
 
 @Controller
 @RequestMapping("/admin")
@@ -39,13 +40,16 @@ public class BlogController {
     private PhotoSevice photoSevice;
 
     @GetMapping("/blogs")
-    public String blogs(@PageableDefault(size=5,sort = {"updateTime"},direction = Sort.Direction.DESC)
+    public Callable<String> blogs(@PageableDefault(size=5,sort = {"updateTime"},direction = Sort.Direction.DESC)
                                     Pageable pageable,
                                     BlogQuery blog,
                                     Model model) {
-        model.addAttribute("types", typeService.listType());
-        model.addAttribute("page",blogService.listBlog(pageable,blog));
-        return LIST;
+        Callable<String> result = ()-> {
+            model.addAttribute("types", typeService.listType());
+            model.addAttribute("page", blogService.listBlog(pageable, blog));
+            return LIST;
+        };
+        return result;
     }
 
     @PostMapping("/blogs/search")
@@ -71,12 +75,15 @@ public class BlogController {
     }
 
     @GetMapping("/blogs/{id}/input")
-    public String editInput(@PathVariable Long id, Model model) {
-        setTypeaAndTag(model);
-        Blog blog = blogService.getBlog(id);
-        blog.init();
-        model.addAttribute("blog",blogService.getBlog(id));
-        return INPUT;
+    public Callable<String> editInput(@PathVariable Long id, Model model) {
+        Callable<String> result = ()->{
+            setTypeaAndTag(model);
+            Blog blog = blogService.getBlog(id);
+            blog.init();
+            model.addAttribute("blog",blogService.getBlog(id));
+            return INPUT;
+        };
+        return  result;
     }
 
     @PostMapping("/blogs")
@@ -105,9 +112,12 @@ public class BlogController {
         return VIEW;
     }
     @GetMapping("/blogs/{id}/delete")
-    public String delete(@PathVariable Long id,RedirectAttributes attributes){
-        blogService.deleteBlog(id);
-        attributes.addFlashAttribute("message","Successfully deleted");
-        return REDIRECT_LIST;
+    public Callable<String> delete(@PathVariable Long id,RedirectAttributes attributes){
+        Callable<String> result= ()-> {
+            blogService.deleteBlog(id);
+            attributes.addFlashAttribute("message", "Successfully deleted");
+            return REDIRECT_LIST;
+        };
+        return  result;
     }
 }

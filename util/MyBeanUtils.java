@@ -43,6 +43,7 @@ public class MyBeanUtils {
         }
         return result;
     }
+
     public static String getHtmlContent(String customerName,
                                         String TrainName,
                                         long trainId,
