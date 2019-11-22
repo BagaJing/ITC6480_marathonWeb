@@ -1,5 +1,8 @@
 package com.jing.blogs.orderQueue;
+import com.jing.blogs.domain.Podcast;
+import com.jing.blogs.domain.User;
 import com.jing.blogs.service.PhotoSevice;
+import com.jing.blogs.service.PodcastService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -19,7 +23,9 @@ public class actionQueue {
     private Queue<String> actionQueue = new LinkedList<>();
     @Autowired
     private PhotoSevice photoSevice;
-
+    @Autowired
+    private PodcastService podcastService;
+    /*admin Phtoto Controller*/
     @Async("taskAsyncPool")
     public void setUploadPhotoOrder(String placeOrder, MultipartFile[] files, int type, RedirectAttributes attributes) throws IOException {
         logger.info("Upload Task Received");
@@ -51,11 +57,49 @@ public class actionQueue {
         actionQueue.offer(placeOrder);
 
     }
+    @Async("taskAsyncPool")
     public void setShowAllOrder(String placeOrder, Model model){
         model.addAttribute("articlePhotos",photoSevice.getAllUrlsByType(1));
         model.addAttribute("galleryPhotos",photoSevice.getAllUrlsByType(2));
         actionQueue.offer(placeOrder);
     }
+    /*admin Podcast Controller*/
+    @Async("taskAsyncPool")
+    public void setPodCastPostPageOrder(String placeOrder,Model model){
+        model.addAttribute("podcast",new Podcast());
+        actionQueue.offer(placeOrder);
+    }
+    @Async("taskAsyncPool")
+    public void setPodcastPostOrder(String placeOrder,MultipartFile file, RedirectAttributes attributes, HttpSession session, Podcast podcast) throws IOException {
+        User user = (User) session.getAttribute("user");
+        String author = user.getNickname();
+        user = null;
+        podcast.setAuthor(author);
+        author = null;
+        String saveStatus = podcastService.savePodcast(file, podcast);
+        attributes.addFlashAttribute("message",saveStatus);
+        actionQueue.offer(placeOrder);
+    }
+    @Async("taskAsyncPool")
+    public void setListPodCastsOrder(String placeOrder,Model model){
+        model.addAttribute("podcasts",podcastService.findAll());
+        actionQueue.offer(placeOrder);
+    }
+    @Async("taskAsyncPool")
+    public void setDeletePodcastOrder(String placeOrder,Long id,RedirectAttributes attributes){
+        String type = "message";
+        String message = "Deleted";
+        try {
+            podcastService.deleteById(id);
+        } catch (Exception e){
+            type = "exception";
+            logger.error(e.getMessage());
+            message = e.getMessage();
+        }
+        attributes.addFlashAttribute(type,message);
+        actionQueue.offer(placeOrder);
+    }
+
     public Queue<String> getActionQueue() {
         return actionQueue;
     }
