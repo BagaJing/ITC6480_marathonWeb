@@ -18,6 +18,7 @@ public class Blog {
     private String flag;
     private Integer views;
     private String description;
+    private String firstPic;
 
     private boolean appreciation;
     private boolean shareStatement;
@@ -197,6 +198,10 @@ public class Blog {
     public void setImgIds(String imgIds) {
         this.imgIds = imgIds;
     }
+
+    public String getFirstPic() { return firstPic; }
+
+    public void setFirstPic(String firstPic) { this.firstPic = firstPic; }
 
     public void init() {
         this.tagIds = tagsToIds(this.getTags());

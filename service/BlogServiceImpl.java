@@ -133,6 +133,17 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
+    public Page<Blog> listBlogByTypes(Long typeId, Pageable pageable) {
+        return blogRepository.findAll(new Specification<Blog>() {
+            @Override
+            public Predicate toPredicate(Root<Blog> root, CriteriaQuery<?> cq, CriteriaBuilder cb) {
+                Join join = root.join("type");
+                return cb.equal(join.get("id"),typeId);
+            }
+        },pageable);
+    }
+
+    @Override
     public Map<String, List<Blog>> archiveBlog() {
         List<String> years = blogRepository.findGroupYear();
         Map<String,List<Blog>> map = new HashMap<>();
