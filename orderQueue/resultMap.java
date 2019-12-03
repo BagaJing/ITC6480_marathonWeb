@@ -15,6 +15,8 @@ public class resultMap {
         this.map.put("CONTACT","client/contact");
         this.map.put("GALLERY","client/gallery");
         this.map.put("ARTICLE","client/blog");
+        //post redirect
+        this.map.put("PCONTACT","redirect:/client/contact");
     }
 
     public Map<String, String> getMap() {

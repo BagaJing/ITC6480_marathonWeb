@@ -55,7 +55,9 @@ public class TrainingController {
     @PostMapping("/trainings")
     public String postTraining(RedirectAttributes attributes, Trainning trainning, HttpSession session){
         Trainning t;
-        System.out.println("Test:"+trainning.getDurations());
+        int isLeft;
+        isLeft = (trainingService.listAll().size()%2 == 0)? 0 : 1;
+        trainning.setSideleft(isLeft);
         trainning.setCoach((User)session.getAttribute("user"));
         if(trainning.getId() == null) {
 

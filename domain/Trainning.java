@@ -1,27 +1,28 @@
-package com.jing.blogs.domain;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+        package com.jing.blogs.domain;
+        import javax.persistence.*;
+        import javax.validation.constraints.NotBlank;
+        import javax.validation.constraints.NotNull;
+        import java.util.ArrayList;
+        import java.util.List;
 
 @Entity
 @Table(name = "t_training")
 public class Trainning {
+    private int sideleft;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @NotBlank
     private String name;
-    @NotNull
     private double price;
     @NotNull
     @ManyToOne
     private User coach;
-    @NotNull
     private int durations; //count with day unit
 
+
+    @Basic(fetch = FetchType.LAZY)
+    @Lob
     private String description;  //the detail description about the training
     private int ordered; //count the times the trainning has been ordered
     @OneToMany(mappedBy = "selectedTrain")
@@ -78,4 +79,15 @@ public class Trainning {
     public List<Order> getOrders() { return orders; }
 
     public void setOrders(List<Order> orders) { this.orders = orders; }
+
+    public int getSideleft() {
+        return sideleft;
+    }
+
+    public void setSideleft(int sideleft) {
+        this.sideleft = sideleft;
+    }
 }
+
+
+

@@ -34,6 +34,7 @@ public class UserServiceImpl implements UserService {
             UserBasic u = new UserBasic();
             u.setName(user.getNickname());
             u.setPicUrl(user.getAvatar());
+            u.setEmail(user.getEmail());
             list.add(u);
         }
         return list;

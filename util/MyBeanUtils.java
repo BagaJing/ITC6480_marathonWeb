@@ -1,5 +1,6 @@
 package com.jing.blogs.util;
 
+import com.jing.blogs.vo.contactEntity;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 
@@ -72,6 +73,32 @@ public class MyBeanUtils {
                 "       </tr>\n"+
                 "       </tbody>\n"+
                 "   </table>\n"+
+                "</body>\n" +
+                "</html>";
+        return  res;
+    }
+    public static String contactToHtmlContent(contactEntity contact){
+        String res = "<html>\n" +
+                "<body>\n" +
+                "    <h3>hello Coach ! There is a new customer contact!</h3>\n" +
+                "   <table>\n"+
+                "       <thead>\n"+
+                "       <tr>\n"+
+                "           <th>Name</th>\n"+
+                "           <th>Email</th>\n"+
+                "           <th>Phone</th>\n"+
+                "       </tr>\n"+
+                "       </thead>\n"+
+                "       <tbody>\n"+
+                "       <tr>\n"+
+                "           <td>"+contact.getName()+"</th>\n"+
+                "           <td>"+contact.getEmail()+"</th>\n"+
+                "           <td>"+contact.getPhone()+"</th>\n"+
+                "       </tr>\n"+
+                "       </tbody>\n"+
+                "   </table>\n"+
+                "   <h3>Message</h3>\n"+
+                "   <p>\n"+contact.getMessage()+"</p>\n"+
                 "</body>\n" +
                 "</html>";
         return  res;
